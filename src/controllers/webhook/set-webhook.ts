@@ -2,28 +2,45 @@ import axios from 'axios'
 import { Request, Response } from 'express'
 
 const token = process.env.TELEGRAM_TOKEN
-const url = process.env.URL_SERVER // Substitua pelo URL do seu servidor (Ngrok ou outro)
+const url = process.env.URL_SERVER // полный URL вебхука, например: https://xxx.railway.app/webhook
 
-const setWebhook = (req: Request, res: Response) => {
-  // Configuração do webhook
-  axios
-    .post(`https://api.telegram.org/bot${token}/setWebhook`, {
-      url: url,
+const setWebhook = async (req: Request, res: Response) => {
+  if (!token || !url) {
+    console.error('Missing TELEGRAM_TOKEN or URL_SERVER in environment')
+    res.status(500).json({
+      ok: false,
+      message: 'TELEGRAM_TOKEN or URL_SERVER is not set',
     })
-    .then((response) => {
-      console.log('Webhook configured:', response.data)
+    return
+  }
 
-      res.json({
-        message: `'Webhook configured:' ${response.data}`,
-      })
-    })
-    .catch((error) => {
-      console.error('Error configuring webhook:', error.response.data)
+  try {
+    const response = await axios.post(
+      `https://api.telegram.org/bot${token}/setWebhook`,
+      { url },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
 
-      res.json({
-        message: `Error configuring webhook:' ${error.response.data}`,
-      })
+    console.log('Webhook configured:', response.data)
+
+    res.json({
+      ok: true,
+      message: 'Webhook configured',
+      result: response.data,
     })
+  } catch (error: any) {
+    console.error('Error configuring webhook:', error?.response?.data || error?.message || error)
+
+    res.status(500).json({
+      ok: false,
+      message: 'Error configuring webhook',
+      error: error?.response?.data || error?.message || error,
+    })
+  }
 }
 
 export default setWebhook
