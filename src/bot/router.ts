@@ -31,8 +31,8 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
     return handleLanguageSelection(body)
   }
 
-  // 3) Нажатие на кнопки главного меню
-  if (isMenuButton(text)) {
+  // 3) Кнопки главного меню ИЛИ команда /pers
+  if (isMenuButton(text) || text === '/pers') {
     return handleMenuAction(body)
   }
 
