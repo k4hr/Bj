@@ -1,29 +1,20 @@
+// src/app.ts
 import express from 'express'
 import routes from './routes'
-import * as dotenv from 'dotenv'
-import pino from 'pino-http'
 
-dotenv.config()
-
-const api = express()
+const app = express()
 const port = process.env.PORT || 3000
 
-api.use(pino)
+app.use(express.json())
 
-api.use(express.json())
-
-api.use('/', routes)
-
-const date = new Date().toISOString()
-api.get('/', (req, res) => {
-  req.log.info('Route: Health Check')
-  res.send(`Bot lives! ${date}`)
+// простой health-check, чтобы проверить, что сервер жив
+app.get('/', (req, res) => {
+  res.send('OK')
 })
 
-api.use((req, res) => {
-  res.status(404).json({ error: 'Not Found' })
-})
+// здесь цепляем все наши роуты (включая /set-webhook и /webhook)
+app.use('/', routes)
 
-api.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`)
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`)
 })
