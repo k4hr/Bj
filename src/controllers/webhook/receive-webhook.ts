@@ -1,20 +1,20 @@
 import { Request, Response } from 'express'
-import verifyMessage from '../handler-telegram/new-message'
+import { dispatchUpdate } from '../../bot/router'
 
 export interface TelegramFrom {
   id: number
   is_bot: boolean
-  first_name: string
-  last_name: string
-  username: string
-  language_code: string
+  first_name?: string
+  last_name?: string
+  username?: string
+  language_code?: string
 }
 
 export interface TelegramChat {
   id: number
-  first_name: string
-  last_name: string
-  username: string
+  first_name?: string
+  last_name?: string
+  username?: string
   type: string
 }
 
@@ -22,7 +22,7 @@ export interface TelegramNewMessage {
   message_id: number
   from: TelegramFrom
   chat: TelegramChat
-  date: any
+  date: number
   text: string
 }
 
@@ -31,7 +31,7 @@ export interface TelegramWebhook {
   message: TelegramNewMessage
 }
 
-const receiveWebhook = (req: Request, res: Response) => {
+const receiveWebhook = async (req: Request, res: Response) => {
   const update: TelegramWebhook = req.body
 
   console.log({
@@ -41,9 +41,13 @@ const receiveWebhook = (req: Request, res: Response) => {
     new_message: update.message.text,
   })
 
-  verifyMessage(update)
-
-  res.sendStatus(200)
+  try {
+    await dispatchUpdate(update)
+    res.sendStatus(200)
+  } catch (error) {
+    console.error('Error handling Telegram update:', error)
+    res.sendStatus(500)
+  }
 }
 
 export default receiveWebhook
