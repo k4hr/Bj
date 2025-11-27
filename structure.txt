@@ -1,0 +1,19 @@
+🤖 bot-telegram-template
+├── src
+│   ├── app.ts
+│   ├── controllers
+│   │   ├── handler-telegram
+│   │   │   ├── messages
+│   │   │   │   └── start
+│   │   │   │       └── index.ts
+│   │   │   ├── new-message.ts // Aqui voce vai adicionar as novas funções
+│   │   │   └── send-message-telegram.ts
+│   │   ├── test-bot
+│   │   │   └── hello-user.ts
+│   │   └── webhook
+│   │       ├── receive-webhook.ts
+│   │       └── set-webhook.ts
+│   └── routes
+│       ├── index.ts
+│       └── webhook.ts
+└── tsconfig.json
