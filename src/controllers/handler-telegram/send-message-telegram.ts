@@ -5,11 +5,20 @@ import { TelegramWebhook } from '../webhook/receive-webhook'
 interface ResponseToTelegram {
   text: string
   body: TelegramWebhook
-  replyMarkup?: any // <-- добавили опциональное поле для клавиатуры
+  replyMarkup?: any
 }
 
-const sendResponseToUser = async ({ text, body, replyMarkup }: ResponseToTelegram) => {
+const sendResponseToUser = async ({
+  text,
+  body,
+  replyMarkup,
+}: ResponseToTelegram) => {
   const token = process.env.TELEGRAM_TOKEN
+
+  if (!token) {
+    console.error('TELEGRAM_TOKEN is not set in environment variables')
+    return { message: 'TELEGRAM_TOKEN is missing' }
+  }
 
   const payload: any = {
     chat_id: body.message.chat.id,
