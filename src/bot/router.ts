@@ -1,33 +1,41 @@
 // src/bot/router.ts
 
 import { TelegramWebhook } from '../controllers/webhook/receive-webhook'
-import sendResponseToUser from '../controllers/handler-telegram/send-message-telegram'
 import { handleStart, handleLanguageSelection } from './commands/start'
+import { handleUnknown } from './commands/unknown'
+import { handleMenuAction, isMenuButton } from './commands/menu'
 
 export const dispatchUpdate = async (body: TelegramWebhook) => {
-  const text = body.message.text || ''
+  const msg = body.message
 
-  // 1) Команда /start
+  console.log('dispatchUpdate called, raw message =', {
+    chat_id: msg?.chat?.id,
+    type: msg?.chat?.type,
+    text: msg?.text,
+  })
+
+  // Если нет текста — стикер/фото/голос — отвечаем мягко
+  if (!msg || typeof msg.text !== 'string') {
+    return handleUnknown(body, true)
+  }
+
+  const text = msg.text.trim()
+
+  // 1) /start
   if (text === '/start') {
     return handleStart(body)
   }
 
-  // 2) Нажатие на кнопки выбора языка
+  // 2) Выбор языка
   if (text === '🇷🇺 Русский' || text === '🇬🇧 English') {
     return handleLanguageSelection(body)
   }
 
-  // 3) Всё остальное — пока заглушка
-  const response = [
-    'Я пока понимаю только базовые команды.',
-    '',
-    'Нажми /start, чтобы выбрать язык и увидеть доступные функции.',
-  ].join('\n')
+  // 3) Нажатие на кнопки главного меню
+  if (isMenuButton(text)) {
+    return handleMenuAction(body)
+  }
 
-  await sendResponseToUser({
-    text: response,
-    body,
-  })
-
-  return { message: 'Ok' }
+  // 4) Всё остальное
+  return handleUnknown(body, false)
 }
