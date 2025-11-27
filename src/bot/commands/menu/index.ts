@@ -3,19 +3,22 @@
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
 import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
 
+// Команда для персонажей
+export const CHARACTERS_COMMAND = '/pers'
+
 // Тексты кнопок — в одном месте, чтобы не ошибиться
 export const RU_MENU_BUTTONS = {
   PROFILE: '👤 Мой профиль',
   VOICEAI: '🎤 VoiceAI',
-  SUPPORT: '💬 Поддержка',
-  TERMS: '📜 Условия использования',
+  CHARACTERS: '🧬 Мои персонажи',
+  BUY_TOKENS: '💳 Купить токены',
 }
 
 export const EN_MENU_BUTTONS = {
   PROFILE: '👤 My profile',
   VOICEAI: '🎤 VoiceAI',
-  SUPPORT: '💬 Support',
-  TERMS: '📜 Terms of Use',
+  CHARACTERS: '🧬 My characters',
+  BUY_TOKENS: '💳 Buy tokens',
 }
 
 // Клавиатура главного меню
@@ -24,8 +27,8 @@ export const buildMainMenuKeyboard = (lang: 'ru' | 'en') => {
 
   return {
     keyboard: [
-      [ { text: b.PROFILE }, { text: b.VOICEAI } ],
-      [ { text: b.SUPPORT }, { text: b.TERMS } ],
+      [{ text: b.PROFILE }, { text: b.VOICEAI }],
+      [{ text: b.CHARACTERS }, { text: b.BUY_TOKENS }],
     ],
     resize_keyboard: true,
     one_time_keyboard: false,
@@ -41,7 +44,7 @@ export const isMenuButton = (text: string) => {
   return allButtons.includes(text)
 }
 
-// Обработка нажатий на кнопки меню
+// Обработка нажатий на кнопки меню и /pers
 export const handleMenuAction = async (body: TelegramWebhook) => {
   const text = body.message.text
   let response: string
@@ -63,19 +66,20 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
       ].join('\n')
       break
 
-    case RU_MENU_BUTTONS.SUPPORT:
-    case EN_MENU_BUTTONS.SUPPORT:
+    case RU_MENU_BUTTONS.CHARACTERS:
+    case EN_MENU_BUTTONS.CHARACTERS:
+    case CHARACTERS_COMMAND:
       response = [
-        '💬 Поддержка бота.',
-        'Пока просто напишите сюда ваш вопрос — мы всё прочитаем.',
+        '🧬 Раздел "Мои персонажи" в разработке.',
+        'Здесь ты сможешь создавать персонажей по фото и озвучивать их.',
       ].join('\n')
       break
 
-    case RU_MENU_BUTTONS.TERMS:
-    case EN_MENU_BUTTONS.TERMS:
+    case RU_MENU_BUTTONS.BUY_TOKENS:
+    case EN_MENU_BUTTONS.BUY_TOKENS:
       response = [
-        '📜 Условия использования будут оформлены здесь чуть позже.',
-        'Главное: не злоупотребляйте сервисом и не нарушайте законы.',
+        '💳 Раздел покупки токенов в разработке.',
+        'Скоро здесь можно будет пополнить баланс и открыть доступ к генерациям.',
       ].join('\n')
       break
 
