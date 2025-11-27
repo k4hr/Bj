@@ -2,6 +2,7 @@
 
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
 import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
+import { buildMainMenuKeyboard } from '../menu'
 
 const buildStartMessage = (name?: string) => {
   const userName = name || 'друг'
@@ -14,7 +15,7 @@ const buildStartMessage = (name?: string) => {
   ].join('\n')
 }
 
-const buildStartKeyboard = () => ({
+const buildLanguageKeyboard = () => ({
   keyboard: [
     [
       { text: '🇷🇺 Русский' },
@@ -31,7 +32,7 @@ export const handleStart = async (body: TelegramWebhook) => {
   await sendResponseToUser({
     text: buildStartMessage(name),
     body,
-    replyMarkup: buildStartKeyboard(),
+    replyMarkup: buildLanguageKeyboard(),
   })
 
   return { message: 'Ok' }
@@ -41,24 +42,28 @@ export const handleLanguageSelection = async (body: TelegramWebhook) => {
   const text = body.message.text
 
   let response: string
+  let lang: 'ru' | 'en' = 'ru'
 
   if (text === '🇷🇺 Русский') {
+    lang = 'ru'
     response = [
       '✅ Язык интерфейса: 🇷🇺 Русский.',
       '',
-      'Скоро здесь появится меню с командами для озвучки и приколов.',
+      'Вот главное меню бота:',
     ].join('\n')
   } else {
+    lang = 'en'
     response = [
       '✅ Interface language: 🇬🇧 English.',
       '',
-      'Soon you will see a menu with voice features and fun tools here.',
+      'Here is the main menu of the bot:',
     ].join('\n')
   }
 
   await sendResponseToUser({
     text: response,
     body,
+    replyMarkup: buildMainMenuKeyboard(lang),
   })
 
   return { message: 'Ok' }
