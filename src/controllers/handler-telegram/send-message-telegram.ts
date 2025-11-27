@@ -5,19 +5,20 @@ import { TelegramWebhook } from '../webhook/receive-webhook'
 interface ResponseToTelegram {
   text: string
   body: TelegramWebhook
+  replyMarkup?: any // <-- добавили опциональное поле для клавиатуры
 }
 
-const sendResponseToUser = async ({ text, body }: ResponseToTelegram) => {
+const sendResponseToUser = async ({ text, body, replyMarkup }: ResponseToTelegram) => {
   const token = process.env.TELEGRAM_TOKEN
 
-  const text_options = {
+  const payload: any = {
+    chat_id: body.message.chat.id,
+    text,
     parse_mode: 'HTML',
   }
 
-  const message = {
-    chat_id: body.message.chat.id,
-    text,
-    ...text_options,
+  if (replyMarkup) {
+    payload.reply_markup = replyMarkup
   }
 
   try {
@@ -27,7 +28,7 @@ const sendResponseToUser = async ({ text, body }: ResponseToTelegram) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      data: JSON.stringify(message),
+      data: JSON.stringify(payload),
     })
 
     return {
