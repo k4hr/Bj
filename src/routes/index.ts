@@ -4,7 +4,7 @@ import receiveWebhook from '../controllers/webhook/receive-webhook'
 
 const router = express.Router()
 
-// только вебхук
-router.use('/webhook', receiveWebhook)
+// только вебхук от Telegram
+router.post('/webhook', receiveWebhook)
 
 export default router
