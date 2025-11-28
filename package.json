@@ -1,5 +1,5 @@
 {
-  "name": "bot-telegram-template",
+  "name": "voiceaibot",
   "version": "1.0.0",
   "description": "Template to create a telegram bot with Typescript and Express.",
   "main": "dist/app.js",
@@ -12,7 +12,7 @@
     "postinstall": "prisma generate"
   },
   "keywords": [],
-  "author": "juninhopo <kelgaxd@gmail.com>",
+  "author": "bog <k4hr>",
   "license": "ISC",
   "devDependencies": {
     "@types/dotenv": "^8.2.0",
