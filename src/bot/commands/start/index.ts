@@ -1,7 +1,9 @@
 // src/bot/commands/start/index.ts
 
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
-import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
+import sendResponseToUser, {
+  deleteTelegramMessage,
+} from '../../../controllers/handler-telegram/send-message-telegram'
 import { buildMainMenuKeyboard } from '../menu'
 
 const buildStartMessage = (name?: string) => {
@@ -15,31 +17,35 @@ const buildStartMessage = (name?: string) => {
   ].join('\n')
 }
 
-const buildLanguageKeyboard = () => ({
-  keyboard: [
-    [
-      { text: '🇷🇺 Русский' },
-      { text: '🇬🇧 English' },
-    ],
-  ],
+const buildStartKeyboard = () => ({
+  keyboard: [[{ text: '🇷🇺 Русский' }, { text: '🇬🇧 English' }]],
   resize_keyboard: true,
-  one_time_keyboard: true,
+  one_time_keyboard: false,
 })
 
 export const handleStart = async (body: TelegramWebhook) => {
+  const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   const name = body.message.from.first_name
 
   await sendResponseToUser({
     text: buildStartMessage(name),
     body,
-    replyMarkup: buildLanguageKeyboard(),
+    replyMarkup: buildStartKeyboard(),
   })
+
+  // удаляем /start
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete /start message', err)
+  )
 
   return { message: 'Ok' }
 }
 
 export const handleLanguageSelection = async (body: TelegramWebhook) => {
   const text = body.message.text
+  const chatId = body.message.chat.id
+  const msgId = body.message.message_id
 
   let response: string
   let lang: 'ru' | 'en' = 'ru'
@@ -65,6 +71,11 @@ export const handleLanguageSelection = async (body: TelegramWebhook) => {
     body,
     replyMarkup: buildMainMenuKeyboard(lang),
   })
+
+  // удаляем сообщение "Русский"/"English"
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete language selection message', err)
+  )
 
   return { message: 'Ok' }
 }
