@@ -44,10 +44,45 @@ const sendResponseToUser = async ({
       message: 'OK',
     }
   } catch (err) {
-    console.log(err)
+    console.log('Error sending message to Telegram:', err)
     return {
       message: err,
     }
+  }
+}
+
+/**
+ * Удаление сообщения пользователя (кнопка, /start, /pers и т.д.)
+ */
+export const deleteTelegramMessage = async (
+  chatId: number,
+  messageId: number
+) => {
+  const token = process.env.TELEGRAM_TOKEN
+
+  if (!token) {
+    console.error('TELEGRAM_TOKEN is not set in environment variables')
+    return { ok: false, error: 'TELEGRAM_TOKEN is missing' }
+  }
+
+  try {
+    const res = await axios.post(
+      `https://api.telegram.org/bot${token}/deleteMessage`,
+      {
+        chat_id: chatId,
+        message_id: messageId,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    return res.data
+  } catch (err) {
+    console.log('Error deleting Telegram message:', err)
+    return { ok: false, error: err }
   }
 }
 
