@@ -8,6 +8,7 @@ interface ResponseToTelegram {
   replyMarkup?: any
 }
 
+// универсальная отправка текста
 const sendResponseToUser = async ({
   text,
   body,
@@ -44,16 +45,14 @@ const sendResponseToUser = async ({
       message: 'OK',
     }
   } catch (err) {
-    console.log('Error sending message to Telegram:', err)
+    console.log(err)
     return {
       message: err,
     }
   }
 }
 
-/**
- * Удаление сообщения пользователя (кнопка, /start, /pers и т.д.)
- */
+// отдельная функция для удаления сообщений
 export const deleteTelegramMessage = async (
   chatId: number,
   messageId: number
@@ -62,27 +61,66 @@ export const deleteTelegramMessage = async (
 
   if (!token) {
     console.error('TELEGRAM_TOKEN is not set in environment variables')
-    return { ok: false, error: 'TELEGRAM_TOKEN is missing' }
+    return { message: 'TELEGRAM_TOKEN is missing' }
   }
 
   try {
-    const res = await axios.post(
-      `https://api.telegram.org/bot${token}/deleteMessage`,
-      {
+    await axios({
+      url: `https://api.telegram.org/bot${token}/deleteMessage`,
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: JSON.stringify({
         chat_id: chatId,
         message_id: messageId,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+      }),
+    })
 
-    return res.data
+    return { message: 'OK' }
   } catch (err) {
-    console.log('Error deleting Telegram message:', err)
-    return { ok: false, error: err }
+    console.log('deleteTelegramMessage error', err)
+    return { message: err }
+  }
+}
+
+// отправка фото по file_id
+export const sendPhotoToUser = async (params: {
+  body: TelegramWebhook
+  fileId: string
+  caption?: string
+  replyMarkup?: any
+}) => {
+  const { body, fileId, caption, replyMarkup } = params
+  const token = process.env.TELEGRAM_TOKEN
+
+  if (!token) {
+    console.error('TELEGRAM_TOKEN is not set in environment variables')
+    return { message: 'TELEGRAM_TOKEN is missing' }
+  }
+
+  const payload: any = {
+    chat_id: body.message.chat.id,
+    photo: fileId,
+  }
+
+  if (caption) payload.caption = caption
+  if (replyMarkup) payload.reply_markup = replyMarkup
+
+  try {
+    await axios({
+      url: `https://api.telegram.org/bot${token}/sendPhoto`,
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: JSON.stringify(payload),
+    })
+
+    return { message: 'OK' }
+  } catch (err) {
+    console.log('sendPhotoToUser error', err)
+    return { message: err }
   }
 }
 
