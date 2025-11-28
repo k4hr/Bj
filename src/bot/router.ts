@@ -24,19 +24,18 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
     text: msg?.text,
   })
 
-  const chatId = msg?.chat?.id
-
-  // Если уже идёт диалог создания персонажа — отдаём всё туда
-  if (chatId && hasActivePersSession(chatId)) {
-    return handlePersUpdate(body)
-  }
-
-  // Если нет текста (стикер/фото/голос) и нет активной сессии — заглушка
-  if (!msg || typeof msg.text !== 'string') {
+  // нет сообщения вообще — странно, но такое бывает
+  if (!msg) {
     return handleUnknown(body, true)
   }
 
-  const text = msg.text.trim()
+  const chatId = msg.chat.id
+  const text = typeof msg.text === 'string' ? msg.text.trim() : ''
+
+  // 0) если уже идёт сценарий создания персонажа — всё туда
+  if (hasActivePersSession(chatId)) {
+    return handlePersUpdate(body)
+  }
 
   // 1) /start
   if (text === '/start') {
@@ -48,7 +47,10 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
     return handleLanguageSelection(body)
   }
 
-  // 3) Вход в "Мои персонажи": кнопка из меню или /pers
+  // 3) Вход в раздел "Мои персонажи":
+  // - явная команда /pers
+  // - кнопка меню "Мои персонажи" (RU/EN)
+  // - спец-тексты из pers (Создать персонажа и т.п.)
   if (
     isPersEntryCommand(text) ||
     text === RU_MENU_BUTTONS.CHARACTERS ||
@@ -57,7 +59,7 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
     return handlePersUpdate(body)
   }
 
-  // 4) Кнопки главного меню (профиль, VoiceAI, купить токены и т.д.)
+  // 4) Остальные кнопки главного меню
   if (isMenuButton(text)) {
     return handleMenuAction(body)
   }
