@@ -14,6 +14,10 @@ import {
   isPersEntryCommand,
   hasActivePersSession,
 } from './commands/pers'
+import {
+  handleVoiceUpdate,
+  isVoiceEntryCommand,
+} from './commands/voice'
 
 export const dispatchUpdate = async (body: TelegramWebhook) => {
   const msg = body.message
@@ -58,7 +62,7 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
   // 4) Вход в раздел "Мои персонажи":
   //    - явная команда /pers
   //    - кнопка меню "Мои персонажи" (RU/EN)
-  //    - спец-тексты из pers (Создать персонажа и т.п.)
+  //    - спец-тексты из pers (если потом добавим)
   if (
     isPersEntryCommand(text) ||
     text === RU_MENU_BUTTONS.CHARACTERS ||
@@ -67,11 +71,19 @@ export const dispatchUpdate = async (body: TelegramWebhook) => {
     return handlePersUpdate(body)
   }
 
-  // 5) Остальные кнопки главного меню
+  // 5) Раздел VoiceAI:
+  //    - /voice
+  //    - кнопка VoiceAI в меню
+  //    - внутренние кнопки VoiceAI
+  if (isVoiceEntryCommand(text)) {
+    return handleVoiceUpdate(body)
+  }
+
+  // 6) Остальные кнопки главного меню (профиль, токены и т.п.)
   if (isMenuButton(text)) {
     return handleMenuAction(body)
   }
 
-  // 6) Всё остальное — неизвестная команда/текст
+  // 7) Всё остальное — неизвестная команда/текст
   return handleUnknown(body, false)
 }
