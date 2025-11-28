@@ -176,6 +176,10 @@ const startPersCreation = async (body: TelegramWebhook) => {
   await sendResponseToUser({
     text,
     body,
+    // ВАЖНО: убираем клавиатуру "Создать персонажа"
+    replyMarkup: {
+      remove_keyboard: true,
+    },
   })
 
   return { message: 'Ok' }
@@ -321,7 +325,7 @@ const handleNameStep = async (
   const newPers: Pers = {
     id: `${Date.now()}`,
     name,
-    photoFileId: temp.photoFileId,
+    photoFileId: temp.photoFileId!,
     description: temp.description,
     createdAt: Date.now(),
   }
