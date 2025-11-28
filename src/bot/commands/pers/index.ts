@@ -1,13 +1,15 @@
 // src/bot/commands/pers/index.ts
 
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
-import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
+import sendResponseToUser, {
+  deleteTelegramMessage,
+} from '../../../controllers/handler-telegram/send-message-telegram'
 
 // Кнопка для создания персонажа
 const CREATE_PERS_RU = '➕ Создать персонажа'
 const CREATE_PERS_EN = '➕ Create character'
 
-// Тип персонажа (упрощённо)
+// Тип персонажа (упрощённо, пока в памяти)
 type Pers = {
   id: string
   name: string
@@ -66,6 +68,7 @@ export const hasActivePersSession = (chatId: number) => {
 // Основной обработчик ВСЕХ шагов сценария персонажей
 export const handlePersUpdate = async (body: TelegramWebhook) => {
   const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   const session = getSession(chatId)
   const msg = body.message
 
@@ -74,11 +77,19 @@ export const handlePersUpdate = async (body: TelegramWebhook) => {
     const text = msg.text.trim()
 
     if (text === '/pers') {
-      return showPersList(body)
+      const result = await showPersList(body)
+      deleteTelegramMessage(chatId, msgId).catch((err) =>
+        console.log('Cant delete /pers message', err)
+      )
+      return result
     }
 
     if (text === CREATE_PERS_RU || text === CREATE_PERS_EN) {
-      return startPersCreation(body)
+      const result = await startPersCreation(body)
+      deleteTelegramMessage(chatId, msgId).catch((err) =>
+        console.log('Cant delete create-pers message', err)
+      )
+      return result
     }
   }
 
@@ -94,7 +105,7 @@ export const handlePersUpdate = async (body: TelegramWebhook) => {
       return handleNameStep(body, session)
 
     default:
-      // На всякий случай
+      // На всякий случай: покажем список
       return showPersList(body)
   }
 }
@@ -176,6 +187,7 @@ const handlePhotoStep = async (
   session: PersSession
 ) => {
   const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   const msg = body.message
 
   const photos = (msg as any).photo as
@@ -218,6 +230,11 @@ const handlePhotoStep = async (
     body,
   })
 
+  // удаляем фото-сообщение пользователя
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete photo message', err)
+  )
+
   return { message: 'Ok' }
 }
 
@@ -227,6 +244,7 @@ const handleDescriptionStep = async (
   session: PersSession
 ) => {
   const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   const msg = body.message
 
   if (typeof msg.text !== 'string' || !msg.text.trim()) {
@@ -262,6 +280,11 @@ const handleDescriptionStep = async (
     body,
   })
 
+  // удаляем описание
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete description message', err)
+  )
+
   return { message: 'Ok' }
 }
 
@@ -271,6 +294,7 @@ const handleNameStep = async (
   session: PersSession
 ) => {
   const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   const msg = body.message
 
   if (typeof msg.text !== 'string' || !msg.text.trim()) {
@@ -288,7 +312,7 @@ const handleNameStep = async (
     // что-то пошло не так, защищаемся
     resetSession(chatId)
     await sendResponseToUser({
-      text: 'Что-то пошло не так при создании персонажа. Попробуйте начать заново через "🧬 Мои персонажи".',
+      text: 'Что-то пошло не так при создании персонажа. Попробуйте начать заново через «🧬 Мои персонажи».',
       body,
     })
     return { message: 'Ok' }
@@ -318,6 +342,11 @@ const handleNameStep = async (
     body,
   })
 
-  // Можно сразу показать обновлённый список
+  // удаляем сообщение с именем
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete name message', err)
+  )
+
+  // Можно сразу показать обновлённый список (уже без лишних сообщений)
   return showPersList(body)
 }
