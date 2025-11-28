@@ -8,8 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    // можно включить логи, если нужно
-    // log: ['query', 'error', 'warn']
+    // при желании можно включить логи:
+    // log: ['query', 'error', 'warn'],
   })
 
 if (process.env.NODE_ENV !== 'production') {
