@@ -3,7 +3,7 @@
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
 import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
 
-// Команда для персонажей (её будет ловить pers, а не меню)
+// Команда для персонажей (её ловит модуль pers, не меню)
 export const CHARACTERS_COMMAND = '/pers'
 
 // Тексты кнопок — в одном месте, чтобы не ошибиться
@@ -44,7 +44,8 @@ export const isMenuButton = (text: string) => {
   return allButtons.includes(text)
 }
 
-// Обработка нажатий на кнопки меню (без персонажей)
+// Обработка нажатий на кнопки меню (без персонажей и VoiceAI)
+// VoiceAI сейчас обрабатывается в src/bot/commands/voice
 export const handleMenuAction = async (body: TelegramWebhook) => {
   const text = body.message.text
   let response: string
@@ -58,14 +59,6 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
       ].join('\n')
       break
 
-    case RU_MENU_BUTTONS.VOICEAI:
-    case EN_MENU_BUTTONS.VOICEAI:
-      response = [
-        '🎤 Раздел VoiceAI скоро будет доступен.',
-        'Здесь будут все голосовые функции: TTS, Voice Changer и другие.',
-      ].join('\n')
-      break
-
     case RU_MENU_BUTTONS.BUY_TOKENS:
     case EN_MENU_BUTTONS.BUY_TOKENS:
       response = [
@@ -75,7 +68,6 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
       break
 
     default:
-      // сюда, на всякий случай, попадёт и то, что мы не ожидали
       response = 'Меню пока обновляется. Попробуй ещё раз чуть позже.'
       break
   }
