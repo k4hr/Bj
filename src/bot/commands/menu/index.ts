@@ -1,7 +1,9 @@
 // src/bot/commands/menu/index.ts
 
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
-import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
+import sendResponseToUser, {
+  deleteTelegramMessage,
+} from '../../../controllers/handler-telegram/send-message-telegram'
 
 // Команда для персонажей
 export const CHARACTERS_COMMAND = '/pers'
@@ -47,6 +49,8 @@ export const isMenuButton = (text: string) => {
 // Обработка нажатий на кнопки меню и /pers
 export const handleMenuAction = async (body: TelegramWebhook) => {
   const text = body.message.text
+  const chatId = body.message.chat.id
+  const msgId = body.message.message_id
   let response: string
 
   switch (text) {
@@ -92,6 +96,11 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
     text: response,
     body,
   })
+
+  // удаляем нажатие кнопки меню
+  deleteTelegramMessage(chatId, msgId).catch((err) =>
+    console.log('Cant delete menu message', err)
+  )
 
   return { message: 'Ok' }
 }
