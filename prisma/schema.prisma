@@ -1,32 +1,22 @@
 // prisma/schema.prisma
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  /// Telegram chat_id (для приватных чатов = user_id)
-  id           BigInt   @id
-  createdAt    DateTime @default(now())
-  username     String?
-  firstName    String?
-  lastName     String?
-  languageCode String?
-
-  characters   Character[]
-}
-
-model Character {
+model Persona {
   id          String   @id @default(cuid())
-  userId      BigInt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatId      String   // Telegram chat_id как строка, чтобы не париться с bigint
   name        String
   photoFileId String
   description String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([chatId])
 }
