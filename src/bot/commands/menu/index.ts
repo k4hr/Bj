@@ -1,11 +1,9 @@
 // src/bot/commands/menu/index.ts
 
 import { TelegramWebhook } from '../../../controllers/webhook/receive-webhook'
-import sendResponseToUser, {
-  deleteTelegramMessage,
-} from '../../../controllers/handler-telegram/send-message-telegram'
+import sendResponseToUser from '../../../controllers/handler-telegram/send-message-telegram'
 
-// Команда для персонажей
+// Команда для персонажей (её будет ловить pers, а не меню)
 export const CHARACTERS_COMMAND = '/pers'
 
 // Тексты кнопок — в одном месте, чтобы не ошибиться
@@ -46,11 +44,9 @@ export const isMenuButton = (text: string) => {
   return allButtons.includes(text)
 }
 
-// Обработка нажатий на кнопки меню и /pers
+// Обработка нажатий на кнопки меню (без персонажей)
 export const handleMenuAction = async (body: TelegramWebhook) => {
   const text = body.message.text
-  const chatId = body.message.chat.id
-  const msgId = body.message.message_id
   let response: string
 
   switch (text) {
@@ -70,15 +66,6 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
       ].join('\n')
       break
 
-    case RU_MENU_BUTTONS.CHARACTERS:
-    case EN_MENU_BUTTONS.CHARACTERS:
-    case CHARACTERS_COMMAND:
-      response = [
-        '🧬 Раздел "Мои персонажи" в разработке.',
-        'Здесь ты сможешь создавать персонажей по фото и озвучивать их.',
-      ].join('\n')
-      break
-
     case RU_MENU_BUTTONS.BUY_TOKENS:
     case EN_MENU_BUTTONS.BUY_TOKENS:
       response = [
@@ -88,6 +75,7 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
       break
 
     default:
+      // сюда, на всякий случай, попадёт и то, что мы не ожидали
       response = 'Меню пока обновляется. Попробуй ещё раз чуть позже.'
       break
   }
@@ -96,11 +84,6 @@ export const handleMenuAction = async (body: TelegramWebhook) => {
     text: response,
     body,
   })
-
-  // удаляем нажатие кнопки меню
-  deleteTelegramMessage(chatId, msgId).catch((err) =>
-    console.log('Cant delete menu message', err)
-  )
 
   return { message: 'Ok' }
 }
